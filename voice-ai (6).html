@@ -1,0 +1,612 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>Voice AI</title>
+<link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet"/>
+<style>
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+:root {
+  --bg: #0b0d14;
+  --card: #11131c;
+  --border: #1e2133;
+  --user: #5b8fff;
+  --ai: #a78bfa;
+  --text: #dde1f0;
+  --muted: #454a66;
+  --green: #3ddc84;
+  --orange: #ffaa40;
+  --red: #ff5370;
+  --mono: 'JetBrains Mono', monospace;
+  --sans: 'Outfit', sans-serif;
+}
+html, body { height: 100%; background: var(--bg); color: var(--text); font-family: var(--sans); }
+body {
+  display: flex; flex-direction: column; align-items: center;
+  background-image:
+    radial-gradient(ellipse 70% 40% at 50% 0%, rgba(91,143,255,.07) 0%, transparent 70%),
+    radial-gradient(ellipse 40% 30% at 100% 100%, rgba(167,139,250,.06) 0%, transparent 60%);
+}
+.app { display: flex; flex-direction: column; width: 100%; max-width: 760px; height: 100vh; overflow: hidden; }
+
+/* ── Header ── */
+.header {
+  flex-shrink: 0; display: flex; align-items: center; justify-content: space-between;
+  padding: 14px 20px; border-bottom: 1px solid var(--border);
+  background: rgba(11,13,20,.95); backdrop-filter: blur(10px);
+}
+.logo { display: flex; align-items: center; gap: 9px; }
+.logo-dot {
+  width: 9px; height: 9px; border-radius: 50%; background: var(--ai);
+  box-shadow: 0 0 8px var(--ai); animation: pulse 2.5s ease-in-out infinite;
+}
+@keyframes pulse { 0%,100%{opacity:.5;transform:scale(1)} 50%{opacity:1;transform:scale(1.4)} }
+.logo h1 { font-size: 16px; font-weight: 600; }
+.logo h1 span { color: var(--ai); }
+.key-wrap { display: flex; align-items: center; gap: 8px; }
+.key-wrap label { font-family: var(--mono); font-size: 10px; letter-spacing: .15em; color: var(--muted); text-transform: uppercase; }
+.key-input {
+  font-family: var(--mono); font-size: 11px; background: var(--card); color: var(--text);
+  border: 1px solid var(--border); border-radius: 6px; padding: 6px 10px; width: 200px; outline: none;
+  transition: border-color .2s;
+}
+.key-input:focus { border-color: var(--ai); }
+.key-input::placeholder { color: var(--muted); }
+
+/* ── Chat ── */
+.chat {
+  flex: 1; overflow-y: auto; padding: 20px 20px 10px;
+  display: flex; flex-direction: column; gap: 14px;
+  scrollbar-width: thin; scrollbar-color: var(--border) transparent;
+  overflow-anchor: none;  /* stop browser auto-scrolling on DOM change */
+  min-height: 0;          /* prevent flex child from overflowing */
+}
+.empty {
+  flex: 1; display: flex; flex-direction: column; align-items: center;
+  justify-content: center; gap: 12px; text-align: center; padding: 40px; opacity: .7;
+}
+.empty-icon { font-size: 3rem; }
+.empty h2 { font-size: 1.2rem; font-weight: 500; color: var(--muted); }
+.empty p { font-family: var(--mono); font-size: 11px; color: var(--muted); line-height: 1.9; max-width: 280px; }
+
+/* Messages */
+.msg { display: flex; gap: 10px; align-items: flex-start; animation: pop .25s ease both; }
+@keyframes pop { from { opacity:0; } to { opacity:1; } }
+.avatar {
+  flex-shrink: 0; width: 30px; height: 30px; border-radius: 50%;
+  display: flex; align-items: center; justify-content: center;
+  font-family: var(--mono); font-size: 11px; font-weight: 600; margin-top: 2px;
+}
+.msg.user .avatar { background: rgba(91,143,255,.12); color: var(--user); border: 1px solid rgba(91,143,255,.25); }
+.msg.ai   .avatar { background: rgba(167,139,250,.10); color: var(--ai);  border: 1px solid rgba(167,139,250,.22); }
+.bubble-wrap { flex: 1; min-width: 0; }
+.who { font-family: var(--mono); font-size: 10px; letter-spacing: .12em; text-transform: uppercase; margin-bottom: 4px; }
+.msg.user .who { color: var(--user); }
+.msg.ai   .who { color: var(--ai); }
+.bubble {
+  font-size: 14px; line-height: 1.75; padding: 11px 15px;
+  border-radius: 4px 12px 12px 12px; border: 1px solid var(--border);
+  background: var(--card); white-space: pre-wrap; word-break: break-word;
+}
+.msg.user .bubble { background: rgba(91,143,255,.08); border-color: rgba(91,143,255,.18); border-radius: 12px 4px 12px 12px; }
+.msg.ai   .bubble { background: rgba(167,139,250,.07); border-color: rgba(167,139,250,.15); }
+.cursor { display: inline-block; width: 2px; height: .95em; background: var(--ai); margin-left: 2px; vertical-align: text-bottom; animation: blink .7s step-end infinite; }
+@keyframes blink { 0%,100%{opacity:1} 50%{opacity:0} }
+.dots { display: flex; gap: 4px; padding: 3px 0; }
+.dots span { width: 6px; height: 6px; border-radius: 50%; background: var(--ai); opacity: .4; animation: bounce 1.2s ease-in-out infinite; }
+.dots span:nth-child(2){animation-delay:.2s} .dots span:nth-child(3){animation-delay:.4s}
+@keyframes bounce { 0%,100%{transform:translateY(0);opacity:.4} 50%{transform:translateY(-5px);opacity:1} }
+
+/* ── Live transcript strip ── */
+.live-strip {
+  flex-shrink: 0;
+  margin: 0 20px; padding: 0 14px;
+  background: rgba(91,143,255,.07); border: 1px dashed rgba(91,143,255,.25);
+  border-radius: 8px; font-family: var(--mono); font-size: 13px; color: var(--user);
+  line-height: 1.5; word-break: break-word;
+  height: 42px;
+  display: flex; align-items: center;
+  overflow: hidden;
+}
+.live-strip.empty-strip { color: var(--muted); font-style: italic; }
+
+/* ── Bottom ── */
+.bottom {
+  flex-shrink: 0; border-top: 1px solid var(--border);
+  background: rgba(11,13,20,.97); backdrop-filter: blur(10px);
+  padding: 14px 20px 18px; display: flex; flex-direction: column;
+  align-items: center; gap: 12px;
+}
+canvas#viz {
+  width: 100%; height: 44px; border-radius: 6px;
+  background: var(--card); display: block; opacity: 0; transition: opacity .3s;
+}
+canvas#viz.on { opacity: 1; }
+
+/* Mic button + countdown ring */
+.mic-outer { position: relative; width: 64px; height: 64px; display: flex; align-items: center; justify-content: center; }
+.ripple {
+  position: absolute; width: 100%; height: 100%; border-radius: 50%;
+  border: 1.5px solid var(--red); opacity: 0; pointer-events: none;
+}
+.mic-outer.listening .ripple { animation: ripple 1.8s ease-out infinite; }
+.mic-outer.listening .ripple:nth-child(2) { animation-delay: .6s; }
+.mic-outer.listening .ripple:nth-child(3) { animation-delay: 1.2s; }
+@keyframes ripple { 0%{transform:scale(1);opacity:.5} 100%{transform:scale(2.5);opacity:0} }
+svg.cd-ring { position: absolute; top:0; left:0; width:100%; height:100%; transform:rotate(-90deg); pointer-events:none; }
+svg.cd-ring circle { fill:none; stroke:var(--orange); stroke-width:3; stroke-dasharray:175; stroke-dashoffset:175; stroke-linecap:round; transition: stroke-dashoffset .05s linear; }
+#micBtn {
+  position: relative; z-index: 1; width: 52px; height: 52px; border-radius: 50%;
+  border: 2px solid var(--border); background: var(--card);
+  cursor: pointer; display: flex; align-items: center; justify-content: center;
+  transition: all .2s; outline: none;
+}
+#micBtn:hover { border-color: var(--user); }
+#micBtn.on { border-color: var(--red); background: rgba(255,83,112,.1); }
+#micBtn svg.icon { width: 20px; height: 20px; fill: var(--muted); transition: fill .2s; pointer-events: none; }
+#micBtn:hover svg.icon { fill: var(--user); }
+#micBtn.on svg.icon { fill: var(--red); }
+
+.status-row { display: flex; align-items: center; gap: 7px; font-family: var(--mono); font-size: 10px; letter-spacing: .08em; color: var(--muted); }
+.sdot { width: 6px; height: 6px; border-radius: 50%; background: var(--muted); transition: all .25s; flex-shrink: 0; }
+.sdot.listening { background: var(--red);    box-shadow: 0 0 6px var(--red); }
+.sdot.counting  { background: var(--orange); box-shadow: 0 0 6px var(--orange); }
+.sdot.thinking  { background: var(--ai);     box-shadow: 0 0 6px var(--ai); }
+.sdot.ready     { background: var(--green);  box-shadow: 0 0 6px var(--green); }
+
+.toast {
+  display: none; position: fixed; bottom: 90px; left: 50%; transform: translateX(-50%);
+  background: #1a0a0e; border: 1px solid var(--red); color: var(--red);
+  font-family: var(--mono); font-size: 12px; padding: 9px 16px; border-radius: 8px;
+  z-index: 99; white-space: nowrap;
+}
+.toast.show { display: block; }
+</style>
+</head>
+<body>
+<div class="app">
+
+  <!-- Header -->
+  <div class="header">
+    <div class="logo">
+      <div class="logo-dot"></div>
+      <h1>Voice<span>AI</span></h1>
+    </div>
+    <div class="key-wrap">
+      <label for="apiKey">API Key</label>
+      <input class="key-input" id="apiKey" type="password" placeholder="sk-ant-api03-…"/>
+    </div>
+  </div>
+
+  <!-- Chat history -->
+  <div class="chat" id="chat">
+    <div class="empty" id="empty">
+      <div class="empty-icon">🎙️</div>
+      <h2>Just start talking</h2>
+      <p>Click the mic, speak naturally.<br>Sends automatically when you stop.</p>
+    </div>
+  </div>
+
+  <!-- Live transcript -->
+  <div class="live-strip empty-strip" id="liveStrip">Waiting for speech…</div>
+
+  <!-- Controls -->
+  <div class="bottom">
+    <canvas id="viz"></canvas>
+
+    <div class="mic-outer" id="micOuter">
+      <div class="ripple"></div>
+      <div class="ripple"></div>
+      <div class="ripple"></div>
+      <svg class="cd-ring" viewBox="0 0 64 64"><circle id="cdCircle" cx="32" cy="32" r="28"/></svg>
+      <button id="micBtn" title="Click to start/stop">
+        <svg class="icon" viewBox="0 0 24 24">
+          <path d="M12 1a4 4 0 0 1 4 4v7a4 4 0 0 1-8 0V5a4 4 0 0 1 4-4zm6.25 10a.75.75 0 0 1 .75.75 7 7 0 0 1-6.25 6.96V21h2.5a.75.75 0 0 1 0 1.5h-6.5a.75.75 0 0 1 0-1.5h2.5v-2.29A7 7 0 0 1 5 11.75a.75.75 0 0 1 1.5 0 5.5 5.5 0 0 0 11 0 .75.75 0 0 1 .75-.75z"/>
+        </svg>
+      </button>
+    </div>
+
+    <div class="status-row">
+      <div class="sdot" id="sdot"></div>
+      <span id="stext">Click mic to begin</span>
+    </div>
+  </div>
+</div>
+<div class="toast" id="toast"></div>
+
+<script>
+// ─────────────────────────────────────────
+//  VOICE AI  –  clean single-permission build
+//  getUserMedia called ONCE, stream kept alive.
+//  SR restarts internally without any new prompts.
+// ─────────────────────────────────────────
+
+const SR = window.SpeechRecognition || window.webkitSpeechRecognition;
+
+// DOM
+const chatEl    = document.getElementById('chat');
+const emptyEl   = document.getElementById('empty');
+const liveStrip = document.getElementById('liveStrip');
+const micBtn    = document.getElementById('micBtn');
+const micOuter  = document.getElementById('micOuter');
+const apiKeyEl  = document.getElementById('apiKey');
+const vizCanvas = document.getElementById('viz');
+const c2d       = vizCanvas.getContext('2d');
+const sdot      = document.getElementById('sdot');
+const stextEl   = document.getElementById('stext');
+const toastEl   = document.getElementById('toast');
+const cdCircle  = document.getElementById('cdCircle');
+
+// ── Single shared mic stream ──
+let stream   = null;   // MediaStream — requested once, never released
+let actx     = null;   // AudioContext  (created once)
+let analyser = null;   // AnalyserNode  (created once)
+let vizRaf   = null;
+
+// ── SR state ──
+let recog      = null;
+let srActive   = false;  // is SR currently running?
+let micOn      = false;  // has user turned mic on?
+let busy       = false;  // AI is responding
+
+// ── Utterance ──
+let utterance   = '';    // confirmed final text for current turn
+let interimText = '';    // live partial
+
+// ── Silence timer ──
+const SILENCE_MS = 1800;
+let silTimer  = null;
+let cdTimer   = null;
+const CD_DASH = 175;   // stroke-dasharray value
+
+// conversation history for multi-turn
+const history = [];
+
+// ─────────────────────────────────────────
+//  MIC BUTTON — only requests permission once
+// ─────────────────────────────────────────
+micBtn.addEventListener('click', async () => {
+  if (!SR) { toast('Use Chrome or Edge'); return; }
+
+  if (micOn) {
+    // ── Turn OFF ──
+    micOn = false;
+    stopSR();
+    clearCountdown();
+    setLive('', true);
+    setMicUI(false);
+    setStatus('', 'Mic off — click to resume');
+    return;
+  }
+
+  // ── Turn ON ──
+  // Request mic permission ONE time only
+  if (!stream) {
+    try {
+      stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+      setupAudio(stream);   // wire up AudioContext once
+    } catch(e) {
+      toast('Mic access denied — allow it in browser settings');
+      return;
+    }
+  }
+
+  micOn = true;
+  utterance    = '';
+  interimText  = '';
+  setMicUI(true);
+  setStatus('listening', 'Listening — speak now');
+  showViz();
+  startSR();
+});
+
+// ─────────────────────────────────────────
+//  SPEECH RECOGNITION
+//  New SR object each restart — reuses existing
+//  audio stream automatically via the browser.
+// ─────────────────────────────────────────
+function startSR() {
+  if (!micOn || busy || srActive) return;
+
+  recog = new SR();
+  recog.lang            = 'en-US';
+  recog.continuous      = true;
+  recog.interimResults  = true;
+  recog.maxAlternatives = 1;
+
+  recog.onstart = () => {
+    srActive = true;
+    if (!busy) setStatus('listening', 'Listening — speak now');
+  };
+
+  recog.onresult = (e) => {
+    if (busy) return;
+
+    utterance   = '';
+    interimText = '';
+
+    for (let i = 0; i < e.results.length; i++) {
+      if (e.results[i].isFinal) utterance   += e.results[i][0].transcript + ' ';
+      else                      interimText += e.results[i][0].transcript;
+    }
+
+    const display = (utterance + interimText).trim();
+    setLive(display || '', !display);
+
+    if (e.results[e.results.length - 1].isFinal && utterance.trim()) {
+      armCountdown();
+    } else {
+      clearCountdown();
+    }
+  };
+
+  recog.onspeechend = () => {
+    if (!busy && utterance.trim()) armCountdown();
+  };
+
+  recog.onerror = (e) => {
+    srActive = false;
+    if (e.error === 'no-speech') return;   // silence — onend will restart
+    if (e.error === 'not-allowed') { toast('Mic blocked'); micOn = false; setMicUI(false); return; }
+    // all other errors: let onend restart
+  };
+
+  recog.onend = () => {
+    srActive = false;
+    // Auto-restart if mic is still on and AI is not busy
+    if (micOn && !busy) {
+      setTimeout(startSR, 100);
+    }
+  };
+
+  try {
+    recog.start();
+  } catch(e) {
+    srActive = false;
+    setTimeout(startSR, 300);
+  }
+}
+
+function stopSR() {
+  srActive = false;
+  try { recog?.stop(); } catch(_) {}
+}
+
+// ─────────────────────────────────────────
+//  COUNTDOWN → AUTO SEND
+// ─────────────────────────────────────────
+function armCountdown() {
+  clearCountdown();
+  if (!utterance.trim()) return;
+
+  setStatus('counting', `Sending in ${(SILENCE_MS/1000).toFixed(1)}s…`);
+
+  const start = Date.now();
+  cdTimer = setInterval(() => {
+    const pct = Math.min((Date.now() - start) / SILENCE_MS, 1);
+    cdCircle.style.strokeDashoffset = CD_DASH * (1 - pct);
+  }, 30);
+
+  silTimer = setTimeout(() => {
+    clearCountdown();
+    sendToAI();
+  }, SILENCE_MS);
+}
+
+function clearCountdown() {
+  clearTimeout(silTimer);
+  clearInterval(cdTimer);
+  silTimer = cdTimer = null;
+  cdCircle.style.strokeDashoffset = CD_DASH;
+  if (micOn && !busy) setStatus('listening', 'Listening — speak now');
+}
+
+// ─────────────────────────────────────────
+//  SEND TO CLAUDE
+// ─────────────────────────────────────────
+async function sendToAI() {
+  const text = utterance.trim();
+  if (!text) return;
+
+  const key = apiKeyEl.value.trim();
+  if (!key) {
+    toast('Enter your Anthropic API key in the header');
+    setStatus('listening', 'Listening — speak now');
+    return;
+  }
+
+  // Pause SR while AI responds
+  busy = true;
+  stopSR();
+  setMicUI(false);
+  hideViz();
+  setLive('', true);
+  utterance = interimText = '';
+
+  if (emptyEl.parentNode) emptyEl.remove();
+
+  // Show user message
+  addMsg('user', text);
+  history.push({ role: 'user', content: text });
+
+  // Show AI placeholder
+  const aiEl  = addMsg('ai', '');
+  const bubEl = aiEl.querySelector('.bubble');
+  bubEl.innerHTML = '<div class="dots"><span></span><span></span><span></span></div>';
+  setStatus('thinking', 'Claude is thinking…');
+
+  try {
+    await streamClaude(key, bubEl);
+  } catch(e) {
+    bubEl.textContent = '⚠ ' + e.message;
+    toast(e.message);
+  }
+
+  // Resume
+  busy = false;
+  if (micOn) {
+    setMicUI(true);
+    showViz();
+    setStatus('listening', 'Your turn — speak now');
+    utterance = interimText = '';
+    startSR();
+  } else {
+    setStatus('ready', 'Done — click mic to continue');
+  }
+}
+
+// ─────────────────────────────────────────
+//  CLAUDE STREAMING
+// ─────────────────────────────────────────
+async function streamClaude(key, el) {
+  const res = await fetch('https://api.anthropic.com/v1/messages', {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+      'x-api-key': key,
+      'anthropic-version': '2023-06-01',
+    },
+    body: JSON.stringify({
+      model: 'claude-sonnet-4-20250514',
+      max_tokens: 1024,
+      stream: true,
+      system: 'You are a helpful voice AI. The user speaks to you. Be concise and conversational.',
+      messages: history,
+    }),
+  });
+
+  if (!res.ok) {
+    const j = await res.json().catch(() => ({}));
+    throw new Error(j?.error?.message || `HTTP ${res.status}`);
+  }
+
+  const reader = res.body.getReader();
+  const dec    = new TextDecoder();
+  let full = '', started = false;
+
+  while (true) {
+    const { done, value } = await reader.read();
+    if (done) break;
+    for (const line of dec.decode(value, { stream: true }).split('\n')) {
+      if (!line.startsWith('data: ')) continue;
+      const raw = line.slice(6).trim();
+      if (raw === '[DONE]') continue;
+      let p; try { p = JSON.parse(raw); } catch { continue; }
+
+      if (p.type === 'content_block_delta' && p.delta?.type === 'text_delta') {
+        if (!started) { el.textContent = ''; started = true; }
+        full += p.delta.text;
+        el.innerHTML = esc(full) + '<span class="cursor"></span>';
+        chatEl.scrollTop = chatEl.scrollHeight;
+      }
+      if (p.type === 'message_stop') {
+        el.textContent = full;
+        history.push({ role: 'assistant', content: full });
+        chatEl.scrollTop = chatEl.scrollHeight;
+      }
+    }
+  }
+  if (!started) el.textContent = '(no response)';
+}
+
+// ─────────────────────────────────────────
+//  AUDIO VISUALISER  — set up once, show/hide
+// ─────────────────────────────────────────
+function setupAudio(s) {
+  actx     = new (window.AudioContext || window.webkitAudioContext)();
+  analyser = actx.createAnalyser();
+  analyser.fftSize = 256;
+  analyser.smoothingTimeConstant = 0.8;
+  actx.createMediaStreamSource(s).connect(analyser);
+  // size canvas
+  const r = vizCanvas.getBoundingClientRect();
+  vizCanvas.width  = r.width  * devicePixelRatio;
+  vizCanvas.height = r.height * devicePixelRatio;
+  c2d.scale(devicePixelRatio, devicePixelRatio);
+  window.addEventListener('resize', () => {
+    const rr = vizCanvas.getBoundingClientRect();
+    vizCanvas.width  = rr.width  * devicePixelRatio;
+    vizCanvas.height = rr.height * devicePixelRatio;
+    c2d.scale(devicePixelRatio, devicePixelRatio);
+  });
+}
+
+function drawViz() {
+  if (!analyser) return;
+  vizRaf = requestAnimationFrame(drawViz);
+  const W = vizCanvas.width / devicePixelRatio;
+  const H = vizCanvas.height / devicePixelRatio;
+  const data = new Uint8Array(analyser.frequencyBinCount);
+  analyser.getByteFrequencyData(data);
+  c2d.clearRect(0, 0, vizCanvas.width, vizCanvas.height);
+  const bars = 55, bw = W / bars - 1.5, step = Math.floor(data.length / bars);
+  for (let i = 0; i < bars; i++) {
+    const v  = data[i * step] / 255;
+    const bh = Math.max(2, v * H * .9);
+    c2d.fillStyle = v > .5 ? `rgba(255,83,112,${.4+v*.6})` : `rgba(91,143,255,${.3+v*.7})`;
+    c2d.beginPath();
+    c2d.roundRect(i * (bw + 1.5), (H-bh)/2, bw, bh, 1.5);
+    c2d.fill();
+  }
+}
+
+function showViz() {
+  vizCanvas.classList.add('on');
+  if (!vizRaf) drawViz();
+}
+function hideViz() {
+  vizCanvas.classList.remove('on');
+  cancelAnimationFrame(vizRaf);
+  vizRaf = null;
+  c2d.clearRect(0, 0, vizCanvas.width, vizCanvas.height);
+}
+
+// ─────────────────────────────────────────
+//  UI HELPERS
+// ─────────────────────────────────────────
+function setMicUI(on) {
+  micBtn.classList.toggle('on', on);
+  micOuter.classList.toggle('listening', on);
+}
+
+function setLive(text, isEmpty) {
+  // Truncate long text to last 80 chars so it fits in fixed-height strip
+  const display = text.length > 80 ? '…' + text.slice(-80) : text;
+  liveStrip.textContent = display || (isEmpty ? 'Waiting for speech…' : '');
+  liveStrip.classList.toggle('empty-strip', !text);
+}
+
+function setStatus(state, text) {
+  sdot.className = 'sdot' + (state ? ' ' + state : '');
+  stextEl.textContent = text;
+}
+
+function addMsg(role, text) {
+  const d = document.createElement('div');
+  d.className = 'msg ' + role;
+  d.innerHTML = `
+    <div class="avatar">${role === 'user' ? 'U' : 'AI'}</div>
+    <div class="bubble-wrap">
+      <div class="who">${role === 'user' ? 'You' : 'Claude'}</div>
+      <div class="bubble">${esc(text)}</div>
+    </div>`;
+  chatEl.appendChild(d);
+  chatEl.scrollTop = chatEl.scrollHeight;
+  return d;
+}
+
+let toastT;
+function toast(msg) {
+  toastEl.textContent = msg;
+  toastEl.classList.add('show');
+  clearTimeout(toastT);
+  toastT = setTimeout(() => toastEl.classList.remove('show'), 3500);
+}
+
+function esc(s) {
+  return s.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+}
+</script>
+</body>
+</html>
