@@ -1,0 +1,694 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width,initial-scale=1.0"/>
+<title>InterviewAI — Join the Platform</title>
+<link rel="preconnect" href="https://fonts.googleapis.com"/>
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,wght@0,300;0,400;0,600;0,700;1,300;1,400&family=DM+Mono:wght@300;400;500&family=Instrument+Sans:wght@400;500;600&display=swap" rel="stylesheet"/>
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+
+:root{
+  --ink:#0a0a0f;
+  --ink2:#13131a;
+  --paper:#f5f2ec;
+  --paper2:#edeae2;
+  --gold:#c8a84b;
+  --gold2:#e8c96b;
+  --sage:#4a7c6f;
+  --sage2:#5d9d8e;
+  --rust:#c4592a;
+  --rust2:#e06b38;
+  --cream:#faf8f3;
+  --text-dark:#1a1a24;
+  --text-mid:#4a4a5a;
+  --text-soft:#8a8a9a;
+  --border:#d8d4c8;
+  --serif:'Fraunces',Georgia,serif;
+  --mono:'DM Mono',monospace;
+  --sans:'Instrument Sans',sans-serif;
+}
+
+html,body{height:100%;overflow:hidden}
+
+body{
+  background:var(--ink);
+  color:var(--paper);
+  font-family:var(--sans);
+  display:flex;
+  align-items:stretch;
+}
+
+/* ══ NOISE OVERLAY ══ */
+body::before{
+  content:'';
+  position:fixed;inset:0;z-index:0;pointer-events:none;
+  background-image:url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='1'/%3E%3C/svg%3E");
+  opacity:.025;
+}
+
+/* ══ LEFT PANEL ══ */
+.left{
+  flex:0 0 55%;
+  position:relative;
+  overflow:hidden;
+  background:var(--ink2);
+}
+
+/* Grid lines */
+.left::before{
+  content:'';
+  position:absolute;inset:0;
+  background-image:
+    linear-gradient(rgba(200,168,75,.07) 1px,transparent 1px),
+    linear-gradient(90deg,rgba(200,168,75,.07) 1px,transparent 1px);
+  background-size:60px 60px;
+  animation:gridDrift 20s linear infinite;
+}
+@keyframes gridDrift{from{background-position:0 0}to{background-position:60px 60px}}
+
+/* Ambient glow blobs */
+.blob{position:absolute;border-radius:50%;filter:blur(80px);pointer-events:none}
+.blob1{width:500px;height:500px;background:radial-gradient(circle,rgba(200,168,75,.15),transparent 70%);top:-100px;left:-100px;animation:blobFloat1 12s ease-in-out infinite}
+.blob2{width:400px;height:400px;background:radial-gradient(circle,rgba(74,124,111,.12),transparent 70%);bottom:-80px;right:-80px;animation:blobFloat2 15s ease-in-out infinite}
+.blob3{width:300px;height:300px;background:radial-gradient(circle,rgba(196,89,42,.08),transparent 70%);top:40%;left:30%;animation:blobFloat3 18s ease-in-out infinite}
+@keyframes blobFloat1{0%,100%{transform:translate(0,0) scale(1)}50%{transform:translate(30px,40px) scale(1.1)}}
+@keyframes blobFloat2{0%,100%{transform:translate(0,0) scale(1)}50%{transform:translate(-20px,30px) scale(1.08)}}
+@keyframes blobFloat3{0%,100%{transform:translate(0,0) scale(1)}33%{transform:translate(20px,-30px) scale(.95)}66%{transform:translate(-15px,20px) scale(1.05)}}
+
+.left-inner{
+  position:relative;z-index:1;
+  height:100%;
+  display:flex;flex-direction:column;
+  padding:48px 52px;
+}
+
+/* Logo */
+.logo{display:flex;align-items:center;gap:14px;margin-bottom:auto;animation:fadeUp .8s ease both}
+.logo-mark{
+  width:44px;height:44px;border-radius:10px;
+  background:linear-gradient(135deg,var(--gold),var(--gold2));
+  display:flex;align-items:center;justify-content:center;
+  font-size:22px;
+  box-shadow:0 0 30px rgba(200,168,75,.3);
+}
+.logo-text{font-family:var(--serif);font-size:22px;font-weight:600;letter-spacing:-.01em}
+.logo-text em{font-style:italic;color:var(--gold)}
+
+/* Hero text */
+.hero{margin-bottom:auto;animation:fadeUp .8s .15s ease both;opacity:0}
+.hero-eyebrow{
+  display:inline-flex;align-items:center;gap:8px;
+  font-family:var(--mono);font-size:11px;letter-spacing:.18em;text-transform:uppercase;
+  color:var(--gold);margin-bottom:24px;
+  padding:5px 12px;border:1px solid rgba(200,168,75,.25);border-radius:20px;
+  background:rgba(200,168,75,.06);
+}
+.hero-eyebrow::before{content:'';width:6px;height:6px;border-radius:50%;background:var(--gold);box-shadow:0 0 8px var(--gold)}
+.hero-title{
+  font-family:var(--serif);font-size:clamp(2.4rem,4vw,3.2rem);
+  font-weight:300;line-height:1.15;letter-spacing:-.02em;
+  margin-bottom:20px;
+}
+.hero-title strong{font-weight:600}
+.hero-title em{font-style:italic;color:var(--gold)}
+.hero-desc{
+  font-size:15px;color:rgba(245,242,236,.55);
+  line-height:1.75;max-width:380px;
+  font-weight:300;
+}
+
+/* Feature pills */
+.features{display:flex;flex-direction:column;gap:14px;animation:fadeUp .8s .3s ease both;opacity:0}
+.feat{display:flex;align-items:flex-start;gap:14px}
+.feat-icon{
+  width:36px;height:36px;border-radius:8px;flex-shrink:0;
+  display:flex;align-items:center;justify-content:center;font-size:16px;
+  border:1px solid;margin-top:1px;
+}
+.feat-icon.gold{background:rgba(200,168,75,.1);border-color:rgba(200,168,75,.25)}
+.feat-icon.sage{background:rgba(74,124,111,.1);border-color:rgba(74,124,111,.25)}
+.feat-icon.rust{background:rgba(196,89,42,.1);border-color:rgba(196,89,42,.25)}
+.feat-body h4{font-size:13px;font-weight:600;margin-bottom:2px;letter-spacing:-.01em}
+.feat-body p{font-size:12px;color:rgba(245,242,236,.45);line-height:1.5;font-family:var(--mono)}
+
+/* Stats row */
+.stats{display:flex;gap:32px;padding-top:32px;border-top:1px solid rgba(245,242,236,.08);animation:fadeUp .8s .45s ease both;opacity:0}
+.stat-item{display:flex;flex-direction:column;gap:3px}
+.stat-num{font-family:var(--serif);font-size:28px;font-weight:600;color:var(--gold);line-height:1}
+.stat-lbl{font-family:var(--mono);font-size:10px;color:rgba(245,242,236,.4);letter-spacing:.12em;text-transform:uppercase}
+
+/* Floating card decoration */
+.float-card{
+  position:absolute;right:40px;top:50%;transform:translateY(-50%);
+  background:rgba(245,242,236,.04);border:1px solid rgba(245,242,236,.08);
+  border-radius:16px;padding:18px 20px;backdrop-filter:blur(10px);
+  width:200px;
+  animation:cardFloat 6s ease-in-out infinite;
+  display:flex;flex-direction:column;gap:12px;
+  pointer-events:none;
+}
+@keyframes cardFloat{0%,100%{transform:translateY(-50%) translateY(0)}50%{transform:translateY(-50%) translateY(-10px)}}
+.fc-header{display:flex;align-items:center;gap:8px;font-family:var(--mono);font-size:9px;color:rgba(245,242,236,.4);text-transform:uppercase;letter-spacing:.15em}
+.fc-dot{width:6px;height:6px;border-radius:50%;background:var(--sage2)}
+.fc-score{text-align:center;padding:8px 0}
+.fc-ring{width:60px;height:60px;margin:0 auto 6px;position:relative}
+.fc-ring svg{width:100%;height:100%;transform:rotate(-90deg)}
+.fc-ring-num{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;font-family:var(--serif);font-size:16px;font-weight:600;color:var(--sage2)}
+.fc-grade{font-family:var(--mono);font-size:10px;color:var(--sage2);text-align:center}
+.fc-bars{display:flex;gap:4px;align-items:flex-end;height:30px}
+.fc-bar{flex:1;border-radius:3px 3px 0 0;background:rgba(200,168,75,.2)}
+.fc-bar.a{height:60%;animation:barGrow .8s .5s ease both}
+.fc-bar.b{height:80%;animation:barGrow .8s .6s ease both;background:rgba(200,168,75,.35)}
+.fc-bar.c{height:45%;animation:barGrow .8s .7s ease both}
+.fc-bar.d{height:90%;animation:barGrow .8s .8s ease both;background:rgba(74,124,111,.5)}
+.fc-bar.e{height:65%;animation:barGrow .8s .9s ease both}
+@keyframes barGrow{from{transform:scaleY(0);transform-origin:bottom}to{transform:scaleY(1)}}
+
+/* ══ RIGHT PANEL ══ */
+.right{
+  flex:1;
+  background:var(--cream);
+  display:flex;align-items:center;justify-content:center;
+  padding:40px 32px;
+  overflow-y:auto;
+}
+
+.auth-wrap{width:100%;max-width:400px}
+
+/* Role selector */
+.role-selector{margin-bottom:32px;animation:fadeUp .6s ease both}
+.role-heading{
+  font-family:var(--mono);font-size:10px;letter-spacing:.18em;text-transform:uppercase;
+  color:var(--text-soft);margin-bottom:12px;
+}
+.role-cards{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.role-card{
+  padding:16px 14px;border:2px solid var(--border);border-radius:12px;
+  background:#fff;cursor:pointer;transition:all .2s;position:relative;overflow:hidden;
+}
+.role-card::before{
+  content:'';position:absolute;inset:0;
+  opacity:0;transition:opacity .2s;
+}
+.role-card.admin-card::before{background:linear-gradient(135deg,rgba(200,168,75,.08),rgba(200,168,75,.03))}
+.role-card.applicant-card::before{background:linear-gradient(135deg,rgba(74,124,111,.08),rgba(74,124,111,.03))}
+.role-card:hover{transform:translateY(-1px);box-shadow:0 8px 24px rgba(0,0,0,.08)}
+.role-card.active.admin-card{border-color:var(--gold);box-shadow:0 0 0 3px rgba(200,168,75,.12)}
+.role-card.active.applicant-card{border-color:var(--sage);box-shadow:0 0 0 3px rgba(74,124,111,.12)}
+.role-card.active::before{opacity:1}
+.rc-icon{font-size:24px;margin-bottom:8px;display:block}
+.rc-name{font-size:13px;font-weight:600;color:var(--text-dark);margin-bottom:2px;font-family:var(--sans)}
+.rc-desc{font-size:11px;color:var(--text-soft);font-family:var(--mono);line-height:1.4}
+.rc-check{
+  position:absolute;top:10px;right:10px;
+  width:18px;height:18px;border-radius:50%;
+  display:flex;align-items:center;justify-content:center;
+  font-size:9px;color:#fff;
+  opacity:0;transition:opacity .2s;
+}
+.admin-card .rc-check{background:var(--gold)}
+.applicant-card .rc-check{background:var(--sage)}
+.role-card.active .rc-check{opacity:1}
+
+/* Divider */
+.auth-divider{
+  display:flex;align-items:center;gap:12px;margin-bottom:24px;
+  font-family:var(--mono);font-size:10px;color:var(--text-soft);letter-spacing:.1em;
+  animation:fadeUp .6s .1s ease both;opacity:0;
+}
+.auth-divider::before,.auth-divider::after{content:'';flex:1;height:1px;background:var(--border)}
+
+/* Form */
+.auth-form{animation:fadeUp .6s .15s ease both;opacity:0}
+.form-title{
+  font-family:var(--serif);font-size:26px;font-weight:400;
+  color:var(--text-dark);margin-bottom:4px;letter-spacing:-.02em;
+}
+.form-title em{font-style:italic;color:var(--gold)}
+.form-sub{font-size:13px;color:var(--text-soft);margin-bottom:24px;line-height:1.5}
+
+.field-group{margin-bottom:16px}
+.field-label{
+  display:flex;align-items:center;justify-content:space-between;
+  font-family:var(--mono);font-size:10px;letter-spacing:.14em;text-transform:uppercase;
+  color:var(--text-soft);margin-bottom:7px;
+}
+.field-input{
+  width:100%;padding:11px 14px;
+  border:1.5px solid var(--border);border-radius:9px;
+  background:#fff;color:var(--text-dark);
+  font-family:var(--sans);font-size:14px;
+  outline:none;transition:border-color .2s,box-shadow .2s;
+}
+.field-input:focus{border-color:var(--gold);box-shadow:0 0 0 3px rgba(200,168,75,.1)}
+.field-input.sage-focus:focus{border-color:var(--sage);box-shadow:0 0 0 3px rgba(74,124,111,.1)}
+.field-input::placeholder{color:var(--text-soft)}
+.field-input.error{border-color:var(--rust)!important;box-shadow:0 0 0 3px rgba(196,89,42,.1)!important}
+
+.err-msg{font-family:var(--mono);font-size:11px;color:var(--rust);min-height:18px;margin-bottom:10px}
+
+/* Submit button */
+.submit-btn{
+  width:100%;padding:13px;border:none;border-radius:10px;
+  font-family:var(--sans);font-size:15px;font-weight:600;
+  cursor:pointer;transition:all .2s;
+  position:relative;overflow:hidden;
+  display:flex;align-items:center;justify-content:center;gap:8px;
+  margin-bottom:16px;
+  letter-spacing:-.01em;
+}
+.submit-btn::before{
+  content:'';position:absolute;inset:0;
+  background:rgba(255,255,255,.1);
+  transform:translateX(-100%);transition:transform .3s;
+}
+.submit-btn:hover::before{transform:translateX(0)}
+.submit-btn:active{transform:scale(.98)}
+.submit-btn:disabled{opacity:.5;cursor:not-allowed}
+.submit-btn.admin-btn{background:linear-gradient(135deg,#c8a84b,#e8c96b);color:var(--ink)}
+.submit-btn.applicant-btn{background:linear-gradient(135deg,#4a7c6f,#5d9d8e);color:#fff}
+
+/* Divider or */
+.or-row{
+  display:flex;align-items:center;gap:12px;margin-bottom:16px;
+  font-family:var(--mono);font-size:10px;color:var(--text-soft);
+}
+.or-row::before,.or-row::after{content:'';flex:1;height:1px;background:var(--border)}
+
+/* Guest btn */
+.guest-btn{
+  width:100%;padding:11px;border:1.5px solid var(--border);border-radius:10px;
+  background:transparent;color:var(--text-mid);
+  font-family:var(--sans);font-size:14px;font-weight:500;
+  cursor:pointer;transition:all .2s;
+  display:flex;align-items:center;justify-content:center;gap:8px;
+}
+.guest-btn:hover{border-color:var(--text-mid);background:rgba(0,0,0,.02)}
+
+/* Switch link */
+.switch-row{text-align:center;margin-top:20px;font-size:13px;color:var(--text-soft)}
+.switch-row a{color:var(--text-dark);font-weight:600;cursor:pointer;text-decoration:none;border-bottom:1px solid var(--border);transition:border-color .2s}
+.switch-row a:hover{border-color:var(--text-dark)}
+
+/* Badge shown after role pick */
+.role-banner{
+  display:flex;align-items:center;gap:8px;
+  padding:8px 12px;border-radius:8px;margin-bottom:20px;
+  font-family:var(--mono);font-size:11px;font-weight:500;
+  transition:all .3s;
+}
+.role-banner.admin{background:rgba(200,168,75,.1);border:1px solid rgba(200,168,75,.25);color:#8a6b1a}
+.role-banner.applicant{background:rgba(74,124,111,.1);border:1px solid rgba(74,124,111,.25);color:var(--sage)}
+.role-banner .rb-dot{width:7px;height:7px;border-radius:50%}
+.role-banner.admin .rb-dot{background:var(--gold)}
+.role-banner.applicant .rb-dot{background:var(--sage2)}
+
+/* Extra signup field */
+#nameGroup{display:none}
+
+/* Animations */
+@keyframes fadeUp{from{opacity:0;transform:translateY(16px)}to{opacity:1;transform:none}}
+
+/* ══ RESPONSIVE ══ */
+@media(max-width:900px){
+  body{flex-direction:column;overflow:auto}
+  .left{flex:none;height:auto;padding:32px 28px 48px}
+  .float-card{display:none}
+  .stats{gap:24px}
+  .right{padding:32px 24px}
+}
+@media(max-width:480px){
+  .role-cards{grid-template-columns:1fr 1fr}
+  .rc-desc{display:none}
+  .left-inner{padding:28px 24px}
+}
+</style>
+</head>
+<body>
+
+<!-- LEFT -->
+<div class="left">
+  <div class="blob blob1"></div>
+  <div class="blob blob2"></div>
+  <div class="blob blob3"></div>
+
+  <div class="left-inner">
+
+    <!-- Logo -->
+    <div class="logo">
+      <div class="logo-mark">🎯</div>
+      <div class="logo-text">Interview<em>AI</em></div>
+    </div>
+
+    <!-- Hero -->
+    <div class="hero">
+      <div class="hero-eyebrow">AI-Powered Hiring Platform</div>
+      <h1 class="hero-title">
+        Where great<br>
+        <em>interviews</em><br>
+        <strong>begin.</strong>
+      </h1>
+      <p class="hero-desc">
+        Structured AI interviews for every role. Admins post, applicants practice, and everyone gets smarter feedback.
+      </p>
+    </div>
+
+    <!-- Features -->
+    <div class="features">
+      <div class="feat">
+        <div class="feat-icon gold">🛡️</div>
+        <div class="feat-body">
+          <h4>Admin Control Center</h4>
+          <p>Post listings, set difficulty, review applicant scores</p>
+        </div>
+      </div>
+      <div class="feat">
+        <div class="feat-icon sage">🤖</div>
+        <div class="feat-body">
+          <h4>Claude-Powered Questions</h4>
+          <p>Tailored to each role, JD, and seniority level</p>
+        </div>
+      </div>
+      <div class="feat">
+        <div class="feat-icon rust">📊</div>
+        <div class="feat-body">
+          <h4>End-of-Session Reports</h4>
+          <p>Detailed feedback on every answer, all at once</p>
+        </div>
+      </div>
+    </div>
+
+    <!-- Stats -->
+    <div class="stats">
+      <div class="stat-item">
+        <div class="stat-num">6</div>
+        <div class="stat-lbl">Interview Types</div>
+      </div>
+      <div class="stat-item">
+        <div class="stat-num">4</div>
+        <div class="stat-lbl">Seniority Levels</div>
+      </div>
+      <div class="stat-item">
+        <div class="stat-num">AI</div>
+        <div class="stat-lbl">Feedback Engine</div>
+      </div>
+    </div>
+
+  </div>
+
+  <!-- Floating decoration card -->
+  <div class="float-card">
+    <div class="fc-header"><div class="fc-dot"></div>Live Report</div>
+    <div class="fc-score">
+      <div class="fc-ring">
+        <svg viewBox="0 0 60 60">
+          <circle cx="30" cy="30" r="24" fill="none" stroke="rgba(93,157,142,.15)" stroke-width="5"/>
+          <circle cx="30" cy="30" r="24" fill="none" stroke="#5d9d8e" stroke-width="5"
+            stroke-linecap="round" stroke-dasharray="150.8" stroke-dashoffset="30"
+            style="animation:ringAnim 1.5s ease both"/>
+        </svg>
+        <div class="fc-ring-num">82</div>
+      </div>
+      <div class="fc-grade">Strong 💪</div>
+    </div>
+    <div class="fc-bars">
+      <div class="fc-bar a"></div>
+      <div class="fc-bar b"></div>
+      <div class="fc-bar c"></div>
+      <div class="fc-bar d"></div>
+      <div class="fc-bar e"></div>
+    </div>
+  </div>
+</div>
+
+<!-- RIGHT -->
+<div class="right">
+  <div class="auth-wrap">
+
+    <!-- Role selector -->
+    <div class="role-selector">
+      <div class="role-heading">I am joining as</div>
+      <div class="role-cards">
+        <div class="role-card admin-card active" id="adminCard" onclick="selectRole('admin')">
+          <div class="rc-check">✓</div>
+          <span class="rc-icon">🛡️</span>
+          <div class="rc-name">Admin</div>
+          <div class="rc-desc">Post &amp; manage interviews</div>
+        </div>
+        <div class="role-card applicant-card" id="applicantCard" onclick="selectRole('applicant')">
+          <div class="rc-check">✓</div>
+          <span class="rc-icon">👤</span>
+          <div class="rc-name">Applicant</div>
+          <div class="rc-desc">Browse &amp; take interviews</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Divider -->
+    <div class="auth-divider">Your Account</div>
+
+    <!-- Form -->
+    <div class="auth-form">
+
+      <!-- Role banner -->
+      <div class="role-banner admin" id="roleBanner">
+        <div class="rb-dot"></div>
+        <span id="roleBannerText">Joining as Administrator</span>
+      </div>
+
+      <div class="form-title" id="formTitle">Welcome <em>back</em></div>
+      <div class="form-sub" id="formSub">Sign in to your admin account to continue.</div>
+
+      <!-- Name field (signup only) -->
+      <div class="field-group" id="nameGroup">
+        <div class="field-label">Full Name</div>
+        <input class="field-input" id="nameInp" type="text" placeholder="Your full name" autocomplete="name"/>
+      </div>
+
+      <div class="field-group">
+        <div class="field-label">
+          <span>Email Address</span>
+        </div>
+        <input class="field-input" id="emailInp" type="email" placeholder="you@company.com" autocomplete="email"/>
+      </div>
+
+      <div class="field-group">
+        <div class="field-label">
+          <span>Password</span>
+          <span style="font-size:10px;color:var(--text-soft);cursor:pointer" onclick="togglePass()">Show</span>
+        </div>
+        <input class="field-input" id="passInp" type="password" placeholder="••••••••" autocomplete="current-password"/>
+      </div>
+
+      <div class="err-msg" id="errMsg"></div>
+
+      <button class="submit-btn admin-btn" id="submitBtn" onclick="doAuth()">
+        <span id="submitIcon">→</span>
+        <span id="submitLabel">Sign In as Admin</span>
+      </button>
+
+      <div class="or-row">or</div>
+
+      <button class="guest-btn" onclick="doGuest()">
+        👤 Continue as Guest
+      </button>
+
+      <div class="switch-row">
+        <span id="switchTxt">Don't have an account? </span>
+        <a id="switchLink" onclick="toggleMode()">Create one</a>
+      </div>
+
+    </div>
+  </div>
+</div>
+
+<style>
+@keyframes ringAnim{from{stroke-dashoffset:150.8}to{stroke-dashoffset:30}}
+</style>
+
+<script>
+/* ══ STATE ══ */
+let role='admin', isSignup=false;
+
+/* ══ ROLE SELECTION ══ */
+function selectRole(r){
+  role=r;
+  document.getElementById('adminCard').classList.toggle('active',r==='admin');
+  document.getElementById('applicantCard').classList.toggle('active',r==='applicant');
+
+  const banner=document.getElementById('roleBanner');
+  const btn=document.getElementById('submitBtn');
+  const emailInp=document.getElementById('emailInp');
+  const passInp=document.getElementById('passInp');
+  const nameInp=document.getElementById('nameInp');
+
+  if(r==='admin'){
+    banner.className='role-banner admin';
+    document.getElementById('roleBannerText').textContent='Joining as Administrator';
+    btn.className='submit-btn admin-btn';
+    emailInp.className='field-input';
+    passInp.className='field-input';
+    if(nameInp) nameInp.className='field-input';
+  } else {
+    banner.className='role-banner applicant';
+    document.getElementById('roleBannerText').textContent='Joining as Applicant';
+    btn.className='submit-btn applicant-btn';
+    emailInp.className='field-input sage-focus';
+    passInp.className='field-input sage-focus';
+    if(nameInp) nameInp.className='field-input sage-focus';
+  }
+  updateLabels();
+}
+
+/* ══ TOGGLE SIGNUP/SIGNIN ══ */
+function toggleMode(){
+  isSignup=!isSignup;
+  document.getElementById('nameGroup').style.display=isSignup?'block':'none';
+  updateLabels();
+  document.getElementById('errMsg').textContent='';
+  clearErrors();
+}
+
+function updateLabels(){
+  const isAdmin=role==='admin';
+  const roleName=isAdmin?'Admin':'Applicant';
+  const focusColor=isAdmin?'var(--gold)':'var(--sage2)';
+
+  document.getElementById('formTitle').innerHTML=isSignup
+    ?`Create your <em>account</em>`
+    :`Welcome <em>back</em>`;
+  document.getElementById('formSub').textContent=isSignup
+    ?`Sign up to join as ${roleName.toLowerCase()}.`
+    :`Sign in to your ${roleName.toLowerCase()} account to continue.`;
+  document.getElementById('submitLabel').textContent=isSignup
+    ?`Create ${roleName} Account`
+    :`Sign In as ${roleName}`;
+  document.getElementById('submitIcon').textContent=isSignup?'✓':'→';
+  document.getElementById('switchTxt').textContent=isSignup?'Already have an account? ':'Don\'t have an account? ';
+  document.getElementById('switchLink').textContent=isSignup?'Sign in':'Create one';
+}
+
+/* ══ PASSWORD TOGGLE ══ */
+function togglePass(){
+  const p=document.getElementById('passInp');
+  p.type=p.type==='password'?'text':'password';
+}
+
+/* ══ AUTH ══ */
+function hp(p){let h=5381;for(let i=0;i<p.length;i++)h=((h<<5)+h)^p.charCodeAt(i);return(h>>>0).toString(36);}
+
+function clearErrors(){
+  ['emailInp','passInp','nameInp'].forEach(id=>{
+    const el=document.getElementById(id);
+    if(el) el.classList.remove('error');
+  });
+}
+
+function doAuth(){
+  clearErrors();
+  document.getElementById('errMsg').textContent='';
+
+  const email=document.getElementById('emailInp').value.trim().toLowerCase();
+  const pass=document.getElementById('passInp').value;
+  const name=document.getElementById('nameInp')?.value.trim()||'';
+  const errEl=document.getElementById('errMsg');
+
+  if(!email||!pass){
+    errEl.textContent='Please fill in all fields.';
+    if(!email) document.getElementById('emailInp').classList.add('error');
+    if(!pass) document.getElementById('passInp').classList.add('error');
+    return;
+  }
+  if(!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)){
+    errEl.textContent='Please enter a valid email.';
+    document.getElementById('emailInp').classList.add('error');
+    return;
+  }
+  if(pass.length<6){
+    errEl.textContent='Password must be at least 6 characters.';
+    document.getElementById('passInp').classList.add('error');
+    return;
+  }
+
+  const users=JSON.parse(localStorage.getItem('iai_users')||'{}');
+  const hash=hp(pass);
+
+  if(isSignup){
+    if(!name){
+      errEl.textContent='Please enter your name.';
+      document.getElementById('nameInp').classList.add('error');
+      return;
+    }
+    if(users[email]){
+      errEl.textContent='An account with this email already exists.';
+      document.getElementById('emailInp').classList.add('error');
+      return;
+    }
+    users[email]={name,hash,role};
+    localStorage.setItem('iai_users',JSON.stringify(users));
+    launchApp({email,name,role});
+  } else {
+    const u=users[email];
+    if(!u){
+      errEl.textContent='No account found with this email.';
+      document.getElementById('emailInp').classList.add('error');
+      return;
+    }
+    if(u.hash!==hash){
+      errEl.textContent='Incorrect password. Please try again.';
+      document.getElementById('passInp').classList.add('error');
+      return;
+    }
+    launchApp({email,name:u.name,role:u.role||role});
+  }
+}
+
+function doGuest(){
+  const guestRole=role;
+  launchApp({email:`guest_${Date.now()}@guest.local`,name:'Guest',role:guestRole});
+}
+
+function launchApp(user){
+  localStorage.setItem('iai_session',JSON.stringify(user));
+  // Animate out and redirect
+  document.body.style.transition='opacity .4s ease';
+  document.body.style.opacity='0';
+  setTimeout(()=>{
+    // Replace with your actual platform URL
+    window.location.href='interview-platform.html';
+  },400);
+}
+
+/* Enter key */
+document.addEventListener('keydown',e=>{
+  if(e.key==='Enter') doAuth();
+});
+
+/* Check existing session */
+window.addEventListener('DOMContentLoaded',()=>{
+  const sess=localStorage.getItem('iai_session');
+  if(sess){
+    try{
+      const s=JSON.parse(sess);
+      if(s&&s.email&&s.email!=='guest@localhost'){
+        // Pre-fill role if returning
+        if(s.role) selectRole(s.role);
+      }
+    }catch(_){}
+  }
+  // Seed demo jobs
+  const jobs=JSON.parse(localStorage.getItem('iai_jobs')||'[]');
+  if(!jobs.length){
+    const demo=[
+      {id:'j1',title:'Senior Frontend Engineer',company:'Acme Corp',type:'technical',difficulty:'senior',qCount:5,timeLimit:120,desc:'Join our product team building the next generation of web experiences. 5+ years of React required.',postedBy:'admin@demo.com',postedAt:Date.now()-86400000*3,applications:[]},
+      {id:'j2',title:'Product Manager',company:'TechStart',type:'product',difficulty:'mid',qCount:5,timeLimit:180,desc:'Drive the vision for our B2B SaaS platform. Experience with analytics and roadmap planning required.',postedBy:'admin@demo.com',postedAt:Date.now()-86400000,applications:[]},
+      {id:'j3',title:'Engineering Manager',company:'ScaleUp Inc',type:'leadership',difficulty:'lead',qCount:5,timeLimit:0,desc:'Lead a team of 8 engineers in our platform group. Own technical strategy and people development.',postedBy:'admin@demo.com',postedAt:Date.now()-86400000*5,applications:[]},
+    ];
+    localStorage.setItem('iai_jobs',JSON.stringify(demo));
+  }
+});
+</script>
+</body>
+</html>
