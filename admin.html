@@ -1,0 +1,165 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width,initial-scale=1.0"/>
+<title>VoiceEquity — Admin</title>
+<link rel="preconnect" href="https://fonts.googleapis.com"/>
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin/>
+<link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=DM+Mono:wght@400;500&family=DM+Sans:wght@400;500;600&display=swap" rel="stylesheet"/>
+<link rel="stylesheet" href="css/style.css"/>
+</head>
+<body>
+<div id="toast"></div>
+
+<div id="modal">
+  <div class="modal-card">
+    <div class="modal-header">
+      <div class="modal-title" id="modalTitle">Create Interview</div>
+      <div class="modal-close" onclick="closeModal()">✕</div>
+    </div>
+    <div class="field"><label>Title *</label><input type="text" id="mTitle" placeholder="e.g. Frontend Engineer Interview"/></div>
+    <div class="field"><label>Description</label><textarea id="mDesc" rows="2" placeholder="What this interview covers…"></textarea></div>
+    <div class="field"><label>Role / Position</label><input type="text" id="mRole" placeholder="e.g. Software Engineer"/></div>
+    <div class="field"><label>Interview Type</label>
+      <div class="chip-row" id="mTypeChips">
+        <div class="chip sel" data-v="technical"  onclick="selChip(this,'mTypeChips','mType')">💻 Technical</div>
+        <div class="chip"     data-v="behavioral" onclick="selChip(this,'mTypeChips','mType')">🧠 Behavioral</div>
+        <div class="chip"     data-v="hr"         onclick="selChip(this,'mTypeChips','mType')">💼 HR</div>
+        <div class="chip"     data-v="mixed"      onclick="selChip(this,'mTypeChips','mType')">🎲 Mixed</div>
+      </div>
+      <input type="hidden" id="mType" value="technical"/>
+    </div>
+    <div class="field"><label>Difficulty</label>
+      <div class="chip-row" id="mDiffChips">
+        <div class="chip"     data-v="junior" onclick="selChip(this,'mDiffChips','mDiff')">Junior</div>
+        <div class="chip sel" data-v="mid"    onclick="selChip(this,'mDiffChips','mDiff')">Mid</div>
+        <div class="chip"     data-v="senior" onclick="selChip(this,'mDiffChips','mDiff')">Senior</div>
+      </div>
+      <input type="hidden" id="mDiff" value="mid"/>
+    </div>
+    <div class="field"><label>Number of Questions</label>
+      <div class="chip-row" id="mQChips">
+        <div class="chip"     data-v="3"  onclick="selChip(this,'mQChips','mQ')">3</div>
+        <div class="chip sel" data-v="5"  onclick="selChip(this,'mQChips','mQ')">5</div>
+        <div class="chip"     data-v="7"  onclick="selChip(this,'mQChips','mQ')">7</div>
+        <div class="chip"     data-v="10" onclick="selChip(this,'mQChips','mQ')">10</div>
+      </div>
+      <input type="hidden" id="mQ" value="5"/>
+    </div>
+    <div class="field"><label>Job Description (optional)</label><textarea id="mJD" rows="3" placeholder="Paste JD for tailored questions…"></textarea></div>
+    <div class="err-msg" id="modalErr"></div>
+    <div style="display:flex;gap:12px;justify-content:flex-end;margin-top:8px">
+      <button class="btn btn-ghost" onclick="closeModal()">Cancel</button>
+      <button class="btn btn-amber" onclick="saveInterview()">Save Interview</button>
+    </div>
+  </div>
+</div>
+
+<div class="screen active" id="screenAdmin">
+  <div class="admin-layout">
+    <aside class="admin-sidebar">
+      <div class="sidebar-logo">
+        <div class="sidebar-logo-dot"></div>
+        <div class="sidebar-logo-text">Voice<span>Equity</span> Admin</div>
+      </div>
+      <div class="sidebar-user">
+        <div class="sidebar-avatar" id="adminAvatar">A</div>
+        <div>
+          <div class="sidebar-user-name" id="adminName">Admin</div>
+          <div class="sidebar-user-role" style="color:var(--cyan)">ADMINISTRATOR</div>
+        </div>
+      </div>
+      <div class="nav-item active" onclick="showPanel('dashboard')" id="nav-dashboard"><span class="nav-icon">📊</span> Dashboard</div>
+      <div class="nav-item" onclick="showPanel('interviews')" id="nav-interviews"><span class="nav-icon">📋</span> Interviews</div>
+      <div class="nav-item" onclick="showPanel('results')" id="nav-results"><span class="nav-icon">📈</span> Results</div>
+      <div class="sidebar-logout" onclick="doLogout()"><span>🚪</span> Sign out</div>
+    </aside>
+    <div class="admin-main">
+      <div class="admin-topbar">
+        <div class="admin-topbar-title" id="panelTitle">Dashboard</div>
+        <div id="topAction"></div>
+      </div>
+      <div class="admin-content">
+        <div class="admin-panel active" id="panel-dashboard">
+          <div class="stats-grid">
+            <div class="stat-tile"><div class="stat-tile-val" id="statInterviews" style="color:var(--cyan)">0</div><div class="stat-tile-lbl">Interviews Created</div></div>
+            <div class="stat-tile"><div class="stat-tile-val" id="statSessions" style="color:var(--amber)">0</div><div class="stat-tile-lbl">Sessions Completed</div></div>
+            <div class="stat-tile"><div class="stat-tile-val" id="statAvgScore" style="color:var(--green)">—</div><div class="stat-tile-lbl">Avg Score</div></div>
+          </div>
+          <div class="section-header"><div class="section-title">Recent Sessions</div></div>
+          <div id="recentSessions"><div class="empty-state"><div class="big">🎙️</div><h3>No sessions yet</h3><p>Candidates will appear here after completing interviews.</p></div></div>
+        </div>
+        <div class="admin-panel" id="panel-interviews">
+          <div class="section-header">
+            <div class="section-title">Interview Templates</div>
+            <button class="btn btn-amber" onclick="openCreate()">+ Create Interview</button>
+          </div>
+          <div class="iv-grid" id="ivGrid"><div class="empty-state"><div class="big">📋</div><h3>No interviews yet</h3><p>Click "Create Interview" to build your first template.</p></div></div>
+        </div>
+        <div class="admin-panel" id="panel-results">
+          <div class="section-header"><div class="section-title">All Results</div></div>
+          <div style="overflow-x:auto">
+            <table class="results-table">
+              <thead><tr><th>Candidate</th><th>Interview</th><th>Type</th><th>Score</th><th>Date</th></tr></thead>
+              <tbody id="resultsBody"><tr><td colspan="5" style="text-align:center;padding:40px;color:var(--text3)">No results yet.</td></tr></tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script src="js/db.js"></script>
+<script>
+'use strict';
+let editingId = null;
+const user = requireSession('admin');
+if (user) {
+  $('adminAvatar').textContent = (user.name||'A')[0].toUpperCase();
+  $('adminName').textContent   = user.name||'Admin';
+  renderDash(); renderIvs(); renderResults();
+}
+
+function showPanel(name) {
+  document.querySelectorAll('.admin-panel').forEach(p=>p.classList.remove('active'));
+  document.querySelectorAll('.nav-item').forEach(n=>n.classList.remove('active'));
+  $('panel-'+name).classList.add('active'); $('nav-'+name).classList.add('active');
+  $('panelTitle').textContent = {dashboard:'Dashboard',interviews:'Interviews',results:'Results'}[name]||name;
+  $('topAction').innerHTML = name==='interviews' ? '<button class="btn btn-amber" onclick="openCreate()">+ Create Interview</button>' : '';
+  if(name==='dashboard') renderDash();
+  if(name==='interviews') renderIvs();
+  if(name==='results') renderResults();
+}
+
+function renderDash() {
+  const ivs=DB.ivs(), res=DB.results();
+  $('statInterviews').textContent=ivs.length; $('statSessions').textContent=res.length;
+  const avg=res.length?Math.round(res.reduce((a,r)=>a+r.avgScore,0)/res.length):null;
+  $('statAvgScore').textContent=avg!==null?avg+'%':'—';
+  const rec=[...res].sort((a,b)=>b.ts-a.ts).slice(0,8);
+  if(!rec.length){$('recentSessions').innerHTML=`<div class="empty-state"><div class="big">🎙️</div><h3>No sessions yet</h3><p>Candidates will appear here after completing interviews.</p></div>`;return;}
+  $('recentSessions').innerHTML=`<table class="results-table"><thead><tr><th>Candidate</th><th>Interview</th><th>Score</th><th>When</th></tr></thead><tbody>${rec.map(r=>`<tr><td>${esc(r.userName)}</td><td>${esc(r.ivTitle)}</td><td><span class="score-chip ${scoreClass(r.avgScore)}">${r.avgScore}%</span></td><td style="color:var(--text3);font-family:var(--mono);font-size:12px">${timeAgo(r.ts)}</td></tr>`).join('')}</tbody></table>`;
+}
+
+function renderIvs() {
+  const ivs=DB.ivs();
+  if(!ivs.length){$('ivGrid').innerHTML=`<div class="empty-state"><div class="big">📋</div><h3>No interviews yet</h3><p>Click "Create Interview" to build your first template.</p></div>`;return;}
+  $('ivGrid').innerHTML=ivs.map(iv=>`<div class="iv-card"><div style="display:flex;gap:8px;margin-bottom:4px"><span class="badge badge-amber">${iv.type}</span><span class="badge" style="background:rgba(160,160,200,.08);color:var(--text2);border-color:var(--border)">${iv.difficulty}</span></div><div class="iv-card-title">${esc(iv.title)}</div><div class="iv-card-meta">${iv.qCount} questions · ${iv.role||'General'}</div>${iv.desc?`<div style="font-size:13px;color:var(--text2);line-height:1.55">${esc(iv.desc.slice(0,100))}${iv.desc.length>100?'…':''}</div>`:''}<div class="iv-card-actions"><button class="btn btn-ghost" onclick="openEdit('${iv.id}')">Edit</button><button class="btn btn-danger" onclick="deleteIv('${iv.id}')">Delete</button></div></div>`).join('');
+}
+
+function renderResults() {
+  const res=[...DB.results()].sort((a,b)=>b.ts-a.ts);
+  if(!res.length){$('resultsBody').innerHTML=`<tr><td colspan="5" style="text-align:center;padding:40px;color:var(--text3)">No results yet.</td></tr>`;return;}
+  $('resultsBody').innerHTML=res.map(r=>`<tr><td>${esc(r.userName)}</td><td>${esc(r.ivTitle)}</td><td style="font-family:var(--mono);font-size:12px;color:var(--text2)">${r.type}</td><td><span class="score-chip ${scoreClass(r.avgScore)}">${r.avgScore}%</span></td><td style="color:var(--text3);font-family:var(--mono);font-size:12px">${new Date(r.ts).toLocaleDateString()}</td></tr>`).join('');
+}
+
+function openCreate(){editingId=null;$('modalTitle').textContent='Create Interview';$('mTitle').value='';$('mDesc').value='';$('mRole').value='';$('mJD').value='';resetChips('mTypeChips','technical','mType');resetChips('mDiffChips','mid','mDiff');resetChips('mQChips','5','mQ');$('modalErr').textContent='';$('modal').classList.add('open');}
+function openEdit(id){const iv=DB.ivs().find(i=>i.id===id);if(!iv)return;editingId=id;$('modalTitle').textContent='Edit Interview';$('mTitle').value=iv.title;$('mDesc').value=iv.desc||'';$('mRole').value=iv.role||'';$('mJD').value=iv.jd||'';resetChips('mTypeChips',iv.type,'mType');resetChips('mDiffChips',iv.difficulty,'mDiff');resetChips('mQChips',String(iv.qCount),'mQ');$('modalErr').textContent='';$('modal').classList.add('open');}
+function saveInterview(){const title=$('mTitle').value.trim();if(!title){$('modalErr').textContent='Title is required.';return;}const iv={id:editingId||Date.now().toString(),title,desc:$('mDesc').value.trim(),role:$('mRole').value.trim(),type:$('mType').value,difficulty:$('mDiff').value,qCount:parseInt($('mQ').value),jd:$('mJD').value.trim()};const all=DB.ivs();if(editingId){const idx=all.findIndex(i=>i.id===editingId);if(idx>=0)all[idx]={...all[idx],...iv};}else all.push(iv);DB.saveIvs(all);closeModal();renderIvs();toast('Interview saved!','success');}
+function deleteIv(id){if(!confirm('Delete this interview?'))return;DB.saveIvs(DB.ivs().filter(i=>i.id!==id));renderIvs();toast('Deleted.','info');}
+function closeModal(){$('modal').classList.remove('open');}
+</script>
+</body>
+</html>

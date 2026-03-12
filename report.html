@@ -1,0 +1,117 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width,initial-scale=1.0"/>
+<title>VoiceEquity — Report</title>
+<link rel="preconnect" href="https://fonts.googleapis.com"/>
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin/>
+<link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=DM+Mono:wght@400;500&family=DM+Sans:wght@400;500;600&display=swap" rel="stylesheet"/>
+<link rel="stylesheet" href="css/style.css"/>
+<style>
+  body{overflow-y:auto}
+  #screenReport{position:relative;min-height:100vh;align-items:flex-start;overflow:visible}
+</style>
+</head>
+<body>
+<div id="toast"></div>
+
+<div class="screen active" id="screenReport">
+  <div class="report-wrap" id="reportContent">
+    <div class="empty-state"><div class="big">📊</div><h3>Loading report…</h3></div>
+  </div>
+</div>
+
+<script src="js/db.js"></script>
+<script>
+'use strict';
+requireSession('candidate');
+
+const raw = sessionStorage.getItem('ve_report');
+if (!raw) { window.location.href='candidate.html'; }
+else {
+  const data = JSON.parse(raw);
+  buildReport(data);
+}
+
+function buildReport(data) {
+  const {qs, as, scores, feedbacks, avg, ivTitle, ivType, ivDiff, ivRole} = data;
+  const answered = as.filter(a=>a&&!a.includes('Skipped')&&!a.includes('No answer')).length;
+  const grade    = avg>=85?'Excellent 🏆':avg>=70?'Strong 💪':avg>=55?'Good 👍':avg>=40?'Needs Work 📚':'Keep Practising 🔄';
+  const gc       = avg>=85?'var(--green)':avg>=70?'var(--cyan)':avg>=55?'var(--amber)':'var(--red)';
+  const bc       = s=>s>=80?'score-great':s>=60?'score-good':s>=40?'score-ok':'score-poor';
+  const offset   = 377-(avg/100)*377;
+
+  const qi = qs.map((q,i)=>`
+    <div class="qa-item">
+      <div class="qa-header" onclick="toggleQA(this)">
+        <span class="qa-num">Q${i+1}</span>
+        <span class="qa-q">${esc(q)}</span>
+        <span class="score-chip ${bc(scores[i])}">${scores[i]}/100</span>
+        <span class="qa-chevron">▶</span>
+      </div>
+      <div class="qa-body">
+        <div class="qa-label" style="color:var(--text3)">Your Answer</div>
+        <div class="qa-answer-text">${esc(as[i]||'No answer')}</div>
+        <div class="qa-label" style="color:var(--green);margin-top:12px">Feedback</div>
+        <div class="qa-feedback-text">${esc(feedbacks[i]||'No feedback')}</div>
+      </div>
+    </div>`).join('');
+
+  $('reportContent').innerHTML=`
+    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:32px;flex-wrap:wrap;gap:12px">
+      <div>
+        <div style="font-family:var(--display);font-size:28px;font-weight:800;margin-bottom:4px">Your Report</div>
+        <div style="font-family:var(--mono);font-size:12px;color:var(--text2)">${esc(ivTitle||'Interview')} · ${new Date().toLocaleDateString()}</div>
+      </div>
+      <div style="display:flex;gap:10px;flex-wrap:wrap">
+        <button class="btn btn-amber" onclick="window.location.href='candidate.html'">🔄 New Interview</button>
+        <button class="btn btn-ghost" onclick="downloadReport()">⬇️ Download</button>
+      </div>
+    </div>
+    <div class="report-hero">
+      <div class="report-score-ring">
+        <svg viewBox="0 0 120 120">
+          <circle class="ring-bg" cx="60" cy="60" r="60"/>
+          <circle class="ring-fill" cx="60" cy="60" r="60" stroke="${gc}" style="stroke-dashoffset:${offset}"/>
+        </svg>
+        <div class="ring-text">
+          <div class="ring-pct" style="color:${gc}">${avg}</div>
+          <div class="ring-lbl">Score</div>
+        </div>
+      </div>
+      <div class="report-grade" style="color:${gc}">${grade}</div>
+      <div class="report-sub">${ivDiff} · ${ivType} · ${ivRole}</div>
+    </div>
+    <div class="report-stats">
+      <div class="report-stat"><div class="report-stat-val" style="color:var(--cyan)">${answered}</div><div class="report-stat-lbl">Answered</div></div>
+      <div class="report-stat"><div class="report-stat-val" style="color:var(--amber)">${qs.length-answered}</div><div class="report-stat-lbl">Skipped</div></div>
+      <div class="report-stat"><div class="report-stat-val" style="color:${gc}">${avg}%</div><div class="report-stat-lbl">Avg Score</div></div>
+    </div>
+    <div class="qa-section"><h3>Question Breakdown</h3>${qi}</div>`;
+}
+
+function toggleQA(header) {
+  const body = header.nextElementSibling;
+  const open = body.classList.toggle('open');
+  header.querySelector('.qa-chevron').style.transform = open ? 'rotate(90deg)' : '';
+}
+
+function downloadReport() {
+  const raw=sessionStorage.getItem('ve_report'); if(!raw)return;
+  const {qs,as,scores,feedbacks,avg,ivTitle,ivType,ivDiff,ivRole}=JSON.parse(raw);
+  const txt=[
+    'VOICEEQUITY — INTERVIEW REPORT','================================',
+    `Date: ${new Date().toLocaleString()}`,
+    `Interview: ${ivTitle}`,
+    `Type: ${ivType} | Level: ${ivDiff} | Role: ${ivRole}`,
+    `Overall Score: ${avg}%`, '',
+    ...qs.map((q,i)=>`Q${i+1}: ${q}\nAnswer: ${as[i]||'—'}\nScore: ${scores[i]}/100\nFeedback: ${feedbacks[i]||'—'}\n`)
+  ].join('\n');
+  const a=document.createElement('a');
+  a.href=URL.createObjectURL(new Blob([txt],{type:'text/plain'}));
+  a.download=`voiceequity-report-${Date.now()}.txt`; a.click();
+}
+</script>
+</body>
+</html>

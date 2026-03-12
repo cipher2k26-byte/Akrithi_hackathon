@@ -1,0 +1,60 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width,initial-scale=1.0"/>
+<title>VoiceEquity — Smart Voice Interview System</title>
+<link rel="preconnect" href="https://fonts.googleapis.com"/>
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin/>
+<link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=DM+Mono:wght@400;500&family=DM+Sans:wght@400;500;600&display=swap" rel="stylesheet"/>
+<link rel="stylesheet" href="css/style.css"/>
+</head>
+<body>
+
+<div id="toast"></div>
+
+<div class="screen active" id="screenLanding">
+  <div class="landing-wrap">
+    <div class="landing-logo">
+      <div class="logo-icon">🎙️</div>
+      <div class="logo-text">Voice<span>Equity</span></div>
+    </div>
+    <div class="landing-sdg">
+      <span class="badge badge-amber">SDG 4 · Quality Education</span>
+      <span class="badge badge-cyan">SDG 9 · Innovation</span>
+      <span class="badge badge-green">SDG 10 · Reduced Inequalities</span>
+    </div>
+    <h1 class="landing-headline">Interviews for<br/><em>Everyone.</em></h1>
+    <p class="landing-sub">A fully voice-driven AI interview system designed for visually impaired candidates. No reading. No typing. Just speak — the AI listens, responds, and evaluates.</p>
+    <div class="landing-roles">
+      <a class="role-card candidate" href="auth.html?role=candidate" role="button" tabindex="0" aria-label="Enter as Candidate">
+        <div class="role-card-icon">🎤</div>
+        <div class="role-card-title">Candidate</div>
+        <div class="role-card-desc">Take voice-powered AI interviews. Speak your answers — everything is audio. Accessible by design.</div>
+        <div class="role-card-arrow">Enter as Candidate →</div>
+      </a>
+      <a class="role-card admin-r" href="auth.html?role=admin" role="button" tabindex="0" aria-label="Enter as Admin">
+        <div class="role-card-icon">⚙️</div>
+        <div class="role-card-title">Admin</div>
+        <div class="role-card-desc">Create and manage interview templates. Review candidate results and scores from your dashboard.</div>
+        <div class="role-card-arrow">Enter as Admin →</div>
+      </a>
+    </div>
+    <div class="accessibility-note">
+      <span>♿</span>
+      <span>Fully keyboard navigable · Screen reader compatible · Voice-first interface · No visual dependency required</span>
+    </div>
+  </div>
+</div>
+
+<script src="js/db.js"></script>
+<script>
+// If already logged in, redirect to correct app
+(function() {
+  const sess = DB.sess();
+  if (!sess) return;
+  window.location.href = sess.role === 'admin' ? 'admin.html' : 'candidate.html';
+})();
+</script>
+</body>
+</html>
