@@ -136,6 +136,139 @@ VoiceEquity rethinks what "account" means in a hiring tool:
 
 ---
 
+## 📦 Open Source & Open Standards References
+
+VoiceEquity is built entirely on open, free, and openly licensed technologies. No proprietary SDKs. No paid libraries. Every dependency listed below is either an open web standard, a free public API, or an open-source font.
+
+---
+
+### 🔤 Typography — Google Fonts
+
+All three typefaces are served from **Google Fonts**, a free and open font hosting service by Google. The fonts themselves are licensed under the **SIL Open Font License (OFL)**, which allows free use, modification, and distribution.
+
+| Font | Weights Used | Role in UI | Source |
+|------|-------------|-----------|--------|
+| **Syne** | 400, 600, 700, 800 | Headings, display text, logo | [fonts.google.com/specimen/Syne](https://fonts.google.com/specimen/Syne) |
+| **DM Mono** | 400, 500 | Monospace labels, timestamps, scores | [fonts.google.com/specimen/DM+Mono](https://fonts.google.com/specimen/DM+Mono) |
+| **DM Sans** | 400, 500, 600 | Body text, UI labels, descriptions | [fonts.google.com/specimen/DM+Sans](https://fonts.google.com/specimen/DM+Sans) |
+
+**License:** SIL Open Font License 1.1 — [scripts.sil.org/OFL](https://scripts.sil.org/OFL)
+
+Fonts are loaded via the following open CDN endpoint (as used in all HTML files):
+```html
+<link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800
+  &family=DM+Mono:wght@400;500
+  &family=DM+Sans:wght@400;500;600&display=swap" rel="stylesheet"/>
+```
+
+---
+
+### 🎤 Web Speech API — Browser-Native Open Standard
+
+The entire voice layer of VoiceEquity — microphone capture, real-time transcription, and text-to-speech question delivery — is powered by the **Web Speech API**, a W3C open web standard built into modern browsers. No third-party library or paid speech service is required.
+
+| Feature | API Used | Spec |
+|---------|---------|------|
+| Speech-to-text (candidate answers) | `SpeechRecognition` / `webkitSpeechRecognition` | [W3C Web Speech API](https://wicg.github.io/speech-api/) |
+| Text-to-speech (question playback) | `speechSynthesis` | [W3C Web Speech API](https://wicg.github.io/speech-api/) |
+| Audio waveform visualisation | HTML5 `<canvas>` + `CanvasRenderingContext2D` | [WHATWG HTML Living Standard](https://html.spec.whatwg.org/multipage/canvas.html) |
+
+**Reference:** WICG Web Speech API specification — [wicg.github.io/speech-api](https://wicg.github.io/speech-api/)
+
+---
+
+### 💾 Web Storage API — Browser-Native Open Standard
+
+All user accounts, interview templates, and results are stored using **Web Storage**, a W3C open standard available natively in every modern browser. No database, no server, no third-party storage service.
+
+| Storage Mechanism | Used For | Spec |
+|------------------|---------|------|
+| `localStorage` | User accounts, interview templates, results | [WHATWG Storage Living Standard](https://storage.spec.whatwg.org/) |
+| `sessionStorage` | Active interview state, report data between pages | [WHATWG Storage Living Standard](https://storage.spec.whatwg.org/) |
+
+**Reference:** WHATWG Storage specification — [storage.spec.whatwg.org](https://storage.spec.whatwg.org/)
+
+---
+
+### 🔐 djb2 Hash Algorithm — Public Domain
+
+Passwords are hashed client-side using the **djb2** algorithm, a lightweight non-cryptographic hash function created by Daniel J. Bernstein and released into the public domain. It is used here for basic obfuscation of stored passwords in localStorage.
+
+> ⚠️ Note: djb2 is not a cryptographically secure hashing algorithm. For production deployments, replace with a server-side solution using bcrypt or Argon2.
+
+**Reference:** [Daniel J. Bernstein — djb2](http://www.cse.yorku.ca/~oz/hash.html) (public domain)
+
+---
+
+### 🤖 Anthropic Claude API — AI Question Generation & Scoring
+
+The AI engine calls the **Anthropic Messages API** to generate tailored interview questions and score candidate answers. The model used is `claude-sonnet-4-20250514`.
+
+| Usage | Endpoint | Model |
+|-------|---------|-------|
+| Generate interview questions from JD | `POST https://api.anthropic.com/v1/messages` | `claude-sonnet-4-20250514` |
+| Batch score and give feedback on all answers | `POST https://api.anthropic.com/v1/messages` | `claude-sonnet-4-20250514` |
+
+**Reference:** Anthropic API Documentation — [docs.anthropic.com](https://docs.anthropic.com)
+
+> ⚠️ Calling the Anthropic API directly from the browser exposes your API key if hard-coded. For production, route API calls through a backend proxy.
+
+---
+
+### ♿ WAI-ARIA — Open Accessibility Standard
+
+Interactive elements use **WAI-ARIA** (Web Accessibility Initiative – Accessible Rich Internet Applications) attributes to ensure compatibility with screen readers and assistive technologies. This is an open standard maintained by the W3C.
+
+Examples used in the codebase:
+```html
+<button aria-label="Toggle microphone">…</button>
+<a role="button" tabindex="0" aria-label="Enter as Candidate">…</a>
+```
+
+**Reference:** W3C WAI-ARIA 1.2 specification — [w3.org/TR/wai-aria](https://www.w3.org/TR/wai-aria/)
+
+---
+
+### 🌍 UN Sustainable Development Goals — Open Framework
+
+VoiceEquity explicitly aligns with three UN SDGs, referenced directly in the landing page:
+
+| SDG | Goal | Relevance to VoiceEquity |
+|-----|------|--------------------------|
+| **SDG 4** | Quality Education | Free, open access to interview practice for all learners |
+| **SDG 9** | Industry, Innovation & Infrastructure | AI-powered tooling built on open web standards |
+| **SDG 10** | Reduced Inequalities | Designed for visually impaired and economically excluded candidates |
+
+**Reference:** United Nations SDG framework — [sdgs.un.org](https://sdgs.un.org/goals)
+
+---
+
+### 🖼️ SVG — Open Vector Graphics Standard
+
+UI icons (microphone, navigation) are rendered as inline **SVG** (Scalable Vector Graphics), a W3C open standard for resolution-independent vector graphics. No icon library or image files are required.
+
+**Reference:** W3C SVG specification — [w3.org/TR/SVG](https://www.w3.org/TR/SVG/)
+
+---
+
+### Summary of All Open References
+
+| Technology | Type | License / Standard | Link |
+|-----------|------|--------------------|------|
+| Syne (font) | Open Font | SIL OFL 1.1 | [Google Fonts](https://fonts.google.com/specimen/Syne) |
+| DM Mono (font) | Open Font | SIL OFL 1.1 | [Google Fonts](https://fonts.google.com/specimen/DM+Mono) |
+| DM Sans (font) | Open Font | SIL OFL 1.1 | [Google Fonts](https://fonts.google.com/specimen/DM+Sans) |
+| Web Speech API | Browser Standard | W3C / WICG | [wicg.github.io/speech-api](https://wicg.github.io/speech-api/) |
+| HTML5 Canvas | Browser Standard | WHATWG | [html.spec.whatwg.org](https://html.spec.whatwg.org/multipage/canvas.html) |
+| Web Storage API | Browser Standard | WHATWG | [storage.spec.whatwg.org](https://storage.spec.whatwg.org/) |
+| WAI-ARIA 1.2 | Accessibility Standard | W3C | [w3.org/TR/wai-aria](https://www.w3.org/TR/wai-aria/) |
+| SVG | Graphics Standard | W3C | [w3.org/TR/SVG](https://www.w3.org/TR/SVG/) |
+| djb2 Hash | Algorithm | Public Domain | [cse.yorku.ca/~oz/hash.html](http://www.cse.yorku.ca/~oz/hash.html) |
+| Anthropic Claude API | AI API | Commercial (free tier) | [docs.anthropic.com](https://docs.anthropic.com) |
+| UN SDGs | Policy Framework | Open / Public | [sdgs.un.org](https://sdgs.un.org/goals) |
+
+---
+
 ## 📁 File Structure
 
 ```
